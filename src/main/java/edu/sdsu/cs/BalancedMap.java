@@ -1,8 +1,9 @@
 package edu.sdsu.cs;
+import java.util.LinkedList;
 import java.util.TreeMap;
 
 /**
- * Micheal Kemper
+ * Michael Kemper
  *
  *
  * Juan Pina-Sanz
@@ -14,63 +15,91 @@ import java.util.TreeMap;
 
 public class BalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 {
-    public static void main( String[] args )
-    {
+    TreeMap treeMap;
 
+    public BalancedMap() {
+        treeMap = new TreeMap();
     }
 
+    public BalancedMap(IMap<K,V> iMap) {
+        for (Object o : iMap.keyset()) {
+            treeMap.put(o, iMap.getValue((K) o));
+        }
+    }
     @Override
     public boolean contains(Comparable key) {
+        for(Object o:treeMap.keySet()) {
+            if (key.compareTo(o)==0)
+                return true;
+        }
         return false;
     }
 
     @Override
     public boolean add(Comparable key, Object value) {
-        return false;
+        treeMap.put(key,value);
+        return treeMap.containsKey(key);
     }
 
     @Override
     public Object delete(Comparable key) {
-        return null;
+        return treeMap.remove(key);
     }
 
     @Override
     public Object getValue(Comparable key) {
-        return null;
+        return treeMap.get(key);
     }
 
     @Override
     public K getKey(Object value) {
+        for(Object o:treeMap.keySet()) {
+            if (treeMap.get(o).equals(value))
+                return (K)o;
+        }
         return null;
     }
 
     @Override
     public Iterable<K> getKeys(Object value) {
-        return null;
+        LinkedList<K> linkedList = new LinkedList<K>();
+        for(Object o:treeMap.keySet()) {
+            if (treeMap.get(o).equals(value))
+                linkedList.add((K)o);
+        }
+        return linkedList;
     }
 
     @Override
     public int size() {
-        return 0;
+        return treeMap.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return treeMap.isEmpty();
     }
 
     @Override
     public void clear() {
-
+        treeMap.clear();
     }
 
     @Override
     public Iterable<K> keyset() {
-        return null;
+        LinkedList<K> linkedList = new LinkedList<K>();
+        for(Object o:treeMap.keySet()) {
+            linkedList.add((K)o);
+        }
+        return linkedList;
     }
 
     @Override
     public Iterable values() {
-        return null;
+        LinkedList<K> linkedList = new LinkedList<K>();
+        for(Object o:treeMap.keySet()) {
+            linkedList.add((K)treeMap.get((K)o));
+        }
+        return linkedList;
     }
 }
