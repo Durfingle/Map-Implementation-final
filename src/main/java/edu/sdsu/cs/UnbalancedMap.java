@@ -1,5 +1,7 @@
 package edu.sdsu.cs;
 
+import sun.awt.image.ImageWatched;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -64,10 +66,20 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
         for (Integer integer: it) {
             System.out.println(integer);
         }
+        Iterable<Integer> val = unbalancedMap.values();
+        for (Integer integer: val) {
+            System.out.println(integer);
+        }
     }
 
     @Override
     public boolean contains(K key) {
+        Iterable<K> iterable = keyset();
+        for (K keyInIterable: iterable) {
+            if (keyInIterable.equals(key)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -141,6 +153,9 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public K getKey(V value) {
+//        LinkedList<K> linkedList = new LinkedList<>();
+//        linkedList = findAscendingOrder(root,linkedList);
+//        return linkedList.contains(key);
         return null;
     }
 
@@ -179,43 +194,53 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public Iterable<K> keyset() {
-        LinkedList<K> linkedList = new LinkedList<K>();
-        linkedList = findAscendingOrder(root, linkedList);
-        return linkedList;
+        LinkedList<Node> nodeList = new LinkedList<Node>();
+        nodeList = findAscendingOrder(root, nodeList);
+        LinkedList<V> valuesList = new LinkedList<V>();
+        LinkedList<K> keyList = new LinkedList<>();
+        for(Node node: nodeList){
+            keyList.add((K)node.key);
+        }
+
+        for(Object o: keyList){
+            valuesList.add(keyList.indexOf(o),(V)o);
+        }
+        return keyList;
     }
 
-    private LinkedList<K> findAscendingOrder(Node node, LinkedList<K> linkedList) {
+    private LinkedList<Node> findAscendingOrder(Node node, LinkedList<Node> linkedList) {
 
         if (this.root==null) {
             return linkedList;
         }
         if (node.right != null) {
             linkedList = findAscendingOrder(node.right, linkedList);
-            linkedList.addFirst(node.key);
+            linkedList.addFirst(node);
         }
         if (node.left != null) {
             if (node.right == null) {
-                linkedList.addFirst(node.key);
+                linkedList.addFirst(node);
             }
             linkedList = findAscendingOrder(node.left, linkedList);
         } else {
-            if (!linkedList.contains(node.key))
-                linkedList.addFirst(node.key);
+            if (!linkedList.contains(node))
+                linkedList.addFirst(node);
         }
-        //linkedList.addFirst(node.key);
         return linkedList;
     }
 
     @Override
     public Iterable<V> values() {
+        LinkedList<Node> nodeList = new LinkedList<Node>();
+        nodeList = findAscendingOrder(root, nodeList);
         LinkedList<V> valuesList = new LinkedList<V>();
         LinkedList<K> keyList = new LinkedList<>();
-        for(K key: keyset()){
-            keyList.add(key);
+        for(Node node: nodeList){
+            keyList.add((K)node.key);
         }
 
-        for(Object o: keyList){
-            valuesList.add(keyList.indexOf(o),(V)o);
+        for(Node node: nodeList){
+            valuesList.add((V)node.value);
         }
         return valuesList;
     }
