@@ -1,10 +1,12 @@
 package edu.sdsu.cs;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Objects;
+import java.util.Set;
 
 /**
- * Michael Kemper
+ * Micheal Kemper
  *
  *
  * Juan Pina-Sanz
@@ -20,28 +22,12 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
     private class Node {
         K key;
         V value;
-
         Node left;
         Node right;
 
-        public Node(K key, V value) {
+        public Node (K key, V value){
             this.key = key;
             this.value = value;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Node node = (Node) o;
-            return Objects.equals(key, node.key) &&
-                    Objects.equals(value, node.value);
-        }
-
-        @Override
-        public int hashCode() {
-
-            return Objects.hash(key, value);
         }
     }
 
@@ -82,16 +68,6 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public boolean contains(K key) {
-        if (root != null) {
-            if(root.key.compareTo(key) == 0)
-                return true;
-            else
-                return check(root,key);
-        }
-        return false;
-    }
-
-    public boolean check(Node node, K key) {
         return false;
     }
 
@@ -125,35 +101,42 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public V delete(K key) {
-
-        return null;
-    }
-
-    public V deleteWithNode(K key, V value, Node n) {
-        if (this.root == null) {
-            this.root = new Node(key, value);
+        if ( root == null){
             return null;
-        } else if ((Integer)value < (Integer)n.value) {
-            if (n.left != null) {
-                insert(key, value, n.left);
-            } else {
-                n.left = new Node(key, value);
-                return null;
+        }
+        Node curr = root;
+        while(curr.key.compareTo(key) != 0){
+            if(curr.key.compareTo(key) < 0){
+                curr = curr.left;
+
             }
-        } else if ((Integer)value > (Integer)n.value) {
-            if (n.right != null) {
-                insert(key, value, n.right);
-            } else {
-                n.right = new Node(key, value);
-                return null;
+            else{
+                curr = curr.right;
             }
         }
+
         return null;
     }
 
     @Override
     public V getValue(K key) {
-        return null;
+        if(root == null){
+            return null;
+        }
+
+        Node curr = root;
+
+        while(curr.key.compareTo(key) != 0){
+            if(key.compareTo(curr.key)< 0){
+                curr = curr.left;
+            }else{
+                curr = curr.right;
+            }
+            if (curr == null){
+                return null;
+            }
+        }
+        return curr.value;
     }
 
     @Override
@@ -168,12 +151,25 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public int size() {
-        return size;
+
+        Node curr = root;
+        if( curr == null){
+            return 0;
+        }else{
+            root = curr.left;
+            int leftSize = size();
+
+            root = curr.right;
+            int rightSize = size();
+
+            root = curr;
+            return leftSize + rightSize + 1;
+        }
     }
 
     @Override
     public boolean isEmpty() {
-        return root == null;
+        return root==null;
     }
 
     @Override
@@ -212,6 +208,20 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public Iterable<V> values() {
-        return null;
+        LinkedList<V> valuesList = new LinkedList<V>();
+        LinkedList<K> keyList = new LinkedList<>();
+        for(K key: keyset()){
+            keyList.add(key);
+        }
+
+        for(Object o: keyList){
+            valuesList.add(keyList.indexOf(o),(V)o);
+        }
+        return valuesList;
     }
+
 }
+
+
+
+
