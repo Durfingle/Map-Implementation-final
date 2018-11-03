@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 /**
- * Micheal Kemper
+ * Michael Kemper
  *
  *
  * Juan Pina-Sanz
@@ -40,7 +40,10 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
     }
 
     UnbalancedMap(IMap iMap) {
-
+        Iterable<K> iterable = iMap.keyset();
+        for (K keyInIterable: iterable) {
+            add(keyInIterable,(V)iMap.getValue(keyInIterable));
+        }
     }
 
     public static void main( String[] args )
@@ -113,21 +116,37 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public V delete(K key) {
+        return delete(key, root).value;
+    }
+
+    public Node delete(K key, Node node) {
         if ( root == null){
-            return null;
+            return node;
         }
-        Node curr = root;
-        while(curr.key.compareTo(key) != 0){
-            if(curr.key.compareTo(key) < 0){
-                curr = curr.left;
-
-            }
-            else{
-                curr = curr.right;
+        if((Integer)key < (Integer)node.key) {
+            node.left = delete(key, node.left);
+        } else if((Integer)key > (Integer)node.key) {
+            node.right = delete(key, node.right);
+        } else if(node.left != null && node.right != null) {
+            node.key = findSmallerNode(node.right);
+            delete(node.key, node.right);
+        } else {
+            if (node.left != null) {
+                node = node.left;
+            } else {
+                node = node.right;
             }
         }
+        return node;
+    }
 
-        return null;
+    private K findSmallerNode(Node node) {
+        if (node.left == null) {
+            return node.key;
+        }
+        else {
+            return findSmallerNode(node.left);
+        }
     }
 
     @Override
