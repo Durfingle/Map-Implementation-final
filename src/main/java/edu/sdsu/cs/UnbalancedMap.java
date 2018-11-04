@@ -79,11 +79,34 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
     public boolean contains(K key) {
         Iterable<K> iterable = keyset();
         for (K keyInIterable: iterable) {
-            if (keyInIterable.equals(key)) {
+            if (keyInIterable.compareTo(key) == 0) {
                 return true;
             }
         }
         return false;
+//        Node curr = root;
+//        if (curr == null)
+//            return false;
+//        while((K)curr.key != key){
+//            if(curr != null){
+//                if(((K) curr.key).compareTo(key) > 0){
+//                    curr = curr.left;
+//                    if(((K) curr.key).compareTo(key) == 0){
+//                        return true;
+//                    }
+//                }else{
+//                    curr = curr.right;
+//                    if (curr == null){
+//                        continue;
+//                    }
+//                    if(((K) curr.key).compareTo(key) == 0){
+//                        return true;
+//                    }
+//                }
+//            }
+//            continue;
+//        }
+//        return false;
     }
 
     @Override
@@ -96,14 +119,14 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
         if (this.root == null) {
             this.root = new Node(key, value);
             return true;
-        } else if ((Integer)key < (Integer)n.key) {
+        } else if (key.compareTo(n.key) < 0) {
             if (n.left != null) {
                 insert(key, value, n.left);
             } else {
                 n.left = new Node(key, value);
                 return true;
             }
-        } else if ((Integer)key > (Integer)n.key) {
+        } else if (key.compareTo(n.key) > 0) {
             if (n.right != null) {
                 insert(key, value, n.right);
             } else {
@@ -116,26 +139,31 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public V delete(K key) {
-        return delete(key, root).value;
+        Node deletedNode = delete(key, root);
+        if (deletedNode==null)
+            return null;
+        return deletedNode.value;
     }
 
     public Node delete(K key, Node node) {
         if ( root == null){
             return node;
         }
-        if((Integer)key < (Integer)node.key) {
+
+        if(key.compareTo(node.key) < 0) {
             node.left = delete(key, node.left);
-        } else if((Integer)key > (Integer)node.key) {
+        } else if(key.compareTo(node.key) > 0) {
             node.right = delete(key, node.right);
         } else if(node.left != null && node.right != null) {
             node.key = findSmallerNode(node.right);
             delete(node.key, node.right);
         } else {
-            if (node.left != null) {
-                node = node.left;
-            } else {
-                node = node.right;
-            }
+//            if (node.left != null) {
+//                node = node.left;
+//            } else {
+//                node = node.right;
+//            }
+            node  = (node.left != null) ? node.left : node.right;
         }
         return node;
     }
@@ -180,24 +208,35 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public Iterable<K> getKeys(V value) {
-        return null;
+        LinkedList keysList = new LinkedList();
+        LinkedList<Node> nodeList = new LinkedList<Node>();
+        nodeList = findAscendingOrder(root, nodeList);
+        for (Node node: nodeList) {
+            if (node.value.equals(value)) {
+                keysList.add(node.key);
+            }
+        }
+        return keysList;
     }
 
     @Override
     public int size() {
+//        LinkedList<Node> nodeList = new LinkedList<Node>();
+//        nodeList = findAscendingOrder(root, nodeList);
+        return size(root);
+    }
 
-        Node curr = root;
-        if( curr == null){
+    private int size(Node node){
+        if (node == null)
             return 0;
+        if(node.left != null && node.right != null){
+            return 1 + size(node.left) + size(node.right);
+        }else if(node.left != null){
+            return 1 + size(node.left);
+        }else if(node.right != null){
+            return 1 + size(node.right);
         }else{
-            root = curr.left;
-            int leftSize = size();
-
-            root = curr.right;
-            int rightSize = size();
-
-            root = curr;
-            return leftSize + rightSize + 1;
+            return 1;
         }
     }
 
@@ -208,7 +247,33 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public void clear() {
+        this.root.left = null;
+        this.root.right = null;
+        this.root = null;
+    }
 
+    private K getMinKey(Node node){
+        if(root == null){
+            return null;
+        }
+
+        if(node.left == null){
+            return node.key;
+        } else {
+            return getMinKey(node.left);
+        }
+    }
+
+    private K getMaxKey(Node node){
+        if (root == null){
+            return null;
+        }
+
+        if(node.right == null){
+            return node.key;
+        }else{
+            return getMaxKey(node);
+        }
     }
 
     @Override
