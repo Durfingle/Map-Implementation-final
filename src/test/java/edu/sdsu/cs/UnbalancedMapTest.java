@@ -347,7 +347,6 @@ public class UnbalancedMapTest {
         underTest.add(3, DEFAULT_IGNORE);
         underTest.add(12, DEFAULT_IGNORE);
 
-        // perform the action
         int oldValue = underTest.delete(5);
 
         // verify the structure

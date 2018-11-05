@@ -1,15 +1,10 @@
 package edu.sdsu.cs;
 
-import sun.awt.image.ImageWatched;
-
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Set;
 
 /**
  * Michael Kemper
- *
+ * cssc0833
  *
  * Juan Pina-Sanz
  * cssc0835
@@ -20,7 +15,6 @@ import java.util.Set;
 
 public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 {
-    int size = 0;
     private class Node {
         K key;
         V value;
@@ -39,98 +33,50 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     }
 
-    UnbalancedMap(IMap iMap) {
+    UnbalancedMap(IMap<K,V> iMap) {
         Iterable<K> iterable = iMap.keyset();
         for (K keyInIterable: iterable) {
-            add(keyInIterable,(V)iMap.getValue(keyInIterable));
-        }
-    }
-
-    public static void main( String[] args )
-    {
-        UnbalancedMap unbalancedMap = new UnbalancedMap();
-        unbalancedMap.add(23,1);
-        unbalancedMap.add(17,1);
-        unbalancedMap.add(13,1);
-        unbalancedMap.add(25,1);
-        unbalancedMap.add(5,1);
-        unbalancedMap.add(3,1);
-        unbalancedMap.add(2,1);
-        unbalancedMap.add(27,1);
-        unbalancedMap.add(24,1);
-        unbalancedMap.add(18,1);
-        unbalancedMap.add(15,1);
-        unbalancedMap.add(14,1);
-        unbalancedMap.add(16,1);
-        unbalancedMap.add(28,1);
-        unbalancedMap.add(29,1);
-        unbalancedMap.add(30,1);
-        Iterable<Integer> it = unbalancedMap.keyset();
-        for (Integer integer: it) {
-            System.out.println(integer);
-        }
-        Iterable<Integer> val = unbalancedMap.values();
-        for (Integer integer: val) {
-            System.out.println(integer);
+            add(keyInIterable,iMap.getValue(keyInIterable));
         }
     }
 
     @Override
     public boolean contains(K key) {
-        Iterable<K> iterable = keyset();
-        for (K keyInIterable: iterable) {
-            if (keyInIterable.compareTo(key) == 0) {
-                return true;
-            }
-        }
-        return false;
-//        Node curr = root;
-//        if (curr == null)
-//            return false;
-//        while((K)curr.key != key){
-//            if(curr != null){
-//                if(((K) curr.key).compareTo(key) > 0){
-//                    curr = curr.left;
-//                    if(((K) curr.key).compareTo(key) == 0){
-//                        return true;
-//                    }
-//                }else{
-//                    curr = curr.right;
-//                    if (curr == null){
-//                        continue;
-//                    }
-//                    if(((K) curr.key).compareTo(key) == 0){
-//                        return true;
-//                    }
-//                }
-//            }
-//            continue;
-//        }
-//        return false;
+        return contains(key, root);
+    }
+
+    public boolean contains(K key, Node node) {
+        if(node==null)
+            return false;
+        else if (key.compareTo(node.key) < 0)
+            return contains(key, node.left);
+        else if (key.compareTo(node.key) > 0)
+            return contains(key, node.right);
+        else
+            return true;
     }
 
     @Override
     public boolean add(K key, V value) {
-        size++;
         return insert(key, value, this.root);
     }
 
-    private boolean insert(K key, V value, Node n) {
+    private boolean insert(K key, V value, Node node) {
         if (this.root == null) {
             this.root = new Node(key, value);
             return true;
-        } else if (key.compareTo(n.key) < 0) {
-            if (n.left != null) {
-                insert(key, value, n.left);
+        } else if (key.compareTo(node.key) < 0) {
+            if (node.left != null) {
+                insert(key, value, node.left);
             } else {
-                n.left = new Node(key, value);
+                node.left = new Node(key, value);
                 return true;
             }
-        } else if (key.compareTo(n.key) > 0) {
-            if (n.right != null) {
-                insert(key, value, n.right);
+        } else if (key.compareTo(node.key) > 0) {
+            if (node.right != null) {
+                insert(key, value, node.right);
             } else {
-                n.right = new Node(key, value);
+                node.right = new Node(key, value);
                 return true;
             }
         }
@@ -139,77 +85,83 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public V delete(K key) {
-        Node deletedNode = delete(key, root);
-        if (deletedNode==null)
-            return null;
-        return deletedNode.value;
+        root = deleteNode(root, key);
+        return lastDelete;
     }
 
-    public Node delete(K key, Node node) {
-        if ( root == null){
-            return node;
-        }
+    private V lastDelete = null;
+    private Node deleteNode(Node root, K key)
+    {
+        if (root == null)
+            return root;
 
-        if(key.compareTo(node.key) < 0) {
-            node.left = delete(key, node.left);
-        } else if(key.compareTo(node.key) > 0) {
-            node.right = delete(key, node.right);
-        } else if(node.left != null && node.right != null) {
-            node.key = findSmallerNode(node.right);
-            delete(node.key, node.right);
-        } else {
-//            if (node.left != null) {
-//                node = node.left;
-//            } else {
-//                node = node.right;
-//            }
-            node  = (node.left != null) ? node.left : node.right;
+        if (key.compareTo(root.key) < 0)
+            root.left = deleteNode(root.left, key);
+        else if (key.compareTo(root.key) > 0)
+            root.right = deleteNode(root.right, key);
+        else
+        {
+            if (root.left == null) {
+                if (lastDelete == null)
+                    lastDelete = root.value;
+                return root.right;
+            }
+            else if (root.right == null) {
+                if (lastDelete == null)
+                    lastDelete = root.value;
+                return root.left;
+            }
+            if (lastDelete == null)
+                lastDelete = root.value;
+            root.key = findSmallerNodeKey(root.right);
+            root.right = deleteNode(root.right, root.key);
         }
-        return node;
+        return root;
     }
 
-    private K findSmallerNode(Node node) {
-        if (node.left == null) {
-            return node.key;
+    private K findSmallerNodeKey(Node root)
+    {
+        K smallerKey = root.key;
+        while (root.left != null)
+        {
+            smallerKey = root.left.key;
+            root = root.left;
         }
-        else {
-            return findSmallerNode(node.left);
-        }
+        return smallerKey;
     }
 
     @Override
     public V getValue(K key) {
-        if(root == null){
+        if(root == null)
             return null;
-        }
-
-        Node curr = root;
-
-        while(curr.key.compareTo(key) != 0){
-            if(key.compareTo(curr.key)< 0){
-                curr = curr.left;
-            }else{
-                curr = curr.right;
-            }
-            if (curr == null){
+        Node currentNode = root;
+        while(currentNode.key.compareTo(key) != 0){
+            if(key.compareTo(currentNode.key)< 0)
+                currentNode = currentNode.left;
+            else
+                currentNode = currentNode.right;
+            if (currentNode == null)
                 return null;
-            }
         }
-        return curr.value;
+        return currentNode.value;
     }
 
     @Override
     public K getKey(V value) {
-//        LinkedList<K> linkedList = new LinkedList<>();
-//        linkedList = findAscendingOrder(root,linkedList);
-//        return linkedList.contains(key);
+        LinkedList<Node> nodeList = new LinkedList<>();
+        nodeList = findAscendingOrder(root, nodeList);
+        for (Node node: nodeList) {
+            if (node.value.equals(value)) {
+                return node.key;
+            }
+        }
         return null;
     }
 
     @Override
     public Iterable<K> getKeys(V value) {
         LinkedList keysList = new LinkedList();
-        LinkedList<Node> nodeList = new LinkedList<Node>();
+        LinkedList<Node> nodeList = new LinkedList<>();
         nodeList = findAscendingOrder(root, nodeList);
         for (Node node: nodeList) {
             if (node.value.equals(value)) {
@@ -221,23 +173,16 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public int size() {
-//        LinkedList<Node> nodeList = new LinkedList<Node>();
-//        nodeList = findAscendingOrder(root, nodeList);
-        return size(root);
+        return size(root, 0);
     }
 
-    private int size(Node node){
-        if (node == null)
-            return 0;
-        if(node.left != null && node.right != null){
-            return 1 + size(node.left) + size(node.right);
-        }else if(node.left != null){
-            return 1 + size(node.left);
-        }else if(node.right != null){
-            return 1 + size(node.right);
-        }else{
-            return 1;
+    private int size(Node node, int counter){
+        if (node !=null) {
+            counter++;
+            counter = size(node.left, counter);
+            counter = size(node.right, counter);
         }
+        return counter;
     }
 
     @Override
@@ -247,43 +192,17 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public void clear() {
-        this.root.left = null;
-        this.root.right = null;
         this.root = null;
-    }
-
-    private K getMinKey(Node node){
-        if(root == null){
-            return null;
-        }
-
-        if(node.left == null){
-            return node.key;
-        } else {
-            return getMinKey(node.left);
-        }
-    }
-
-    private K getMaxKey(Node node){
-        if (root == null){
-            return null;
-        }
-
-        if(node.right == null){
-            return node.key;
-        }else{
-            return getMaxKey(node);
-        }
     }
 
     @Override
     public Iterable<K> keyset() {
-        LinkedList<Node> nodeList = new LinkedList<Node>();
+        LinkedList<Node> nodeList = new LinkedList<>();
         nodeList = findAscendingOrder(root, nodeList);
-        LinkedList<V> valuesList = new LinkedList<V>();
+        LinkedList<V> valuesList = new LinkedList<>();
         LinkedList<K> keyList = new LinkedList<>();
         for(Node node: nodeList){
-            keyList.add((K)node.key);
+            keyList.add(node.key);
         }
 
         for(Object o: keyList){
@@ -315,16 +234,16 @@ public class UnbalancedMap <K extends Comparable<K>,V> implements IMap<K,V>
 
     @Override
     public Iterable<V> values() {
-        LinkedList<Node> nodeList = new LinkedList<Node>();
+        LinkedList<Node> nodeList = new LinkedList<>();
         nodeList = findAscendingOrder(root, nodeList);
-        LinkedList<V> valuesList = new LinkedList<V>();
+        LinkedList<V> valuesList = new LinkedList<>();
         LinkedList<K> keyList = new LinkedList<>();
         for(Node node: nodeList){
-            keyList.add((K)node.key);
+            keyList.add(node.key);
         }
 
         for(Node node: nodeList){
-            valuesList.add((V)node.value);
+            valuesList.add(node.value);
         }
         return valuesList;
     }
